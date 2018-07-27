@@ -1,0 +1,33 @@
+#include <iostream>
+#include <string>
+#include <math.h>
+
+float estimacion(int n, float x); 
+
+int main()
+{
+    int n = 0;
+    float y = 0.0;
+    std::cout<<"Digite el numero a calcular"<<std::endl;
+    std::cin>>n;
+    
+    y = estimacion(n, 2.33333);
+    
+    std::cout<<"El valor de la raiz estimada es de: "<<y<<std::endl;
+}
+
+float estimacion(int n, float x)
+{
+    float y = 0.5 * (x + (n/x));
+    float error = fabs(y-sqrt(n));
+    std::cout<<"y : "<<y<<std::endl;
+    std::cout<<"error : "<<error<<std::endl;
+    
+    if (error < 0.00001)
+    {
+        std::cout<<"error final: "<<error<<std::endl;
+        return y;
+    }
+    else
+        return estimacion(n, y);
+}
