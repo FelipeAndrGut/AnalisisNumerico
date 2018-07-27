@@ -16,7 +16,7 @@ bool nseccion(double a, double b, double eps, int n, int iter)
 	while (fabs(a - b) >= eps)
 	{
 		double c = (a + b) / n;
-		std::cout<<"valor aproximado de raíz: "<<c<<" en la iteración: "<<iter<<std::endl;
+		std::cout<<"valor aproximado de la raíz es: "<<c<<" en la iteración: "<<iter<<std::endl;
 
 		if (f(c) == 0)
 		{
