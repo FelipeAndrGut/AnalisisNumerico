@@ -8,14 +8,23 @@ double f(double c)
 	return res;
 }
 
+void validar(double c)
+{
+	std::cout<<std::endl;
+	std::cout<<"Validación del último valor: "<<c*c<<std::endl;	
+}
+
 bool nseccion(double a, double b, double eps, int n, int iter)
 {		
 	bool noLlego = false;
-
+	double c = 0.0;
+		
 	while (fabs(a - b) >= eps)
 	{
-		double c = (a + b) / n;
-		std::cout<<"valor aproximado de la raíz es: "<<c<<" en la iteración: "<<iter<<std::endl;
+		c = (a + b) / n;
+		"En la iteración "<<iter<<: <<std::endl;
+		std::cout<<"\t"<<"El valor aproximado de la raíz es: "<<c<<<<std::endl;
+		std::cout<<"\t"<<"El error de truncamiento es: "<<fabs(a - b)<<std::endl;
 
 		if (f(c) == 0)
 		{
@@ -33,6 +42,8 @@ bool nseccion(double a, double b, double eps, int n, int iter)
 		if (fabs(a - b) < eps && f(c) != 0)
 			noLlego = true;
 	}
+	
+	validacion(c);
 
 	return noLlego;
 }
