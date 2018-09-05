@@ -1,0 +1,30 @@
+#install.packages("Matrix")
+library(Matrix)
+#install.packages("PolynomF")
+library(PolynomF)
+
+t = c(100,200,300,400,500,600)
+b = c(-160,-35,-4.2,9.0,16.9,21.3)
+
+DatosT = t[1:6]; DatosB = b[1:6]
+
+Ajuste_Polinomio = poly(DatosT, 10, raw=TRUE)
+print("Polinomio interpolante para la situación:")
+Ajuste_Polinomio
+print("coeficiente virial a 450:")
+Ajuste_Polinomio(450)
+plot(t, b, pch=19, cex=1, col = "blue", asp=1,xlab="T", ylab="B", main="Temperatura")
+points(approx(t, b), col = 2, pch = "*")
+points(approx(t, b, method = "constant"), col = 4, pch = "*")
+
+Ajuste_Polinomio_Lagrange = poly.calc(DatosT,DatosB)
+print("Polinomio interpolante de Lagrange para la situación:")
+Ajuste_Polinomio_Lagrange
+print("coeficiente virial a 450:")
+Ajuste_Polinomio_Lagrange(450)
+plot(t,b, pch=19, cex=1, col = "red", asp=1,xlab="T", ylab="B", main="Temperatura")
+curve(Ajuste_Polinomio_Lagrange,add=T,from =100,to =600)
+
+
+
+
