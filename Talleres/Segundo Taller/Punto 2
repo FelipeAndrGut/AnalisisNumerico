@@ -9,7 +9,7 @@ b = c(-160,-35,-4.2,9.0,16.9,21.3)
 DatosT = t[1:6]; DatosB = b[1:6]
 
 Ajuste_Polinomio = poly(DatosT, 10, raw=TRUE)
-print("Polinomio interpolante para la situación:")
+print("Polinomio interpolante para la situaciÃ³n:")
 Ajuste_Polinomio
 print("coeficiente virial a 450:")
 Ajuste_Polinomio(450)
@@ -18,7 +18,7 @@ points(approx(t, b), col = 2, pch = "*")
 points(approx(t, b, method = "constant"), col = 4, pch = "*")
 
 Ajuste_Polinomio_Lagrange = poly.calc(DatosT,DatosB)
-print("Polinomio interpolante de Lagrange para la situación:")
+print("Polinomio interpolante de Lagrange para la situaciÃ³n:")
 Ajuste_Polinomio_Lagrange
 print("coeficiente virial a 450:")
 Ajuste_Polinomio_Lagrange(450)
