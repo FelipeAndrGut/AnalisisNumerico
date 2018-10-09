@@ -58,7 +58,7 @@ CurvaDeKoch <- function(x)
     }
     
     Tnew = cbind(d,e,f)
-    return(Tnew); #Return a smaller triangle.
+    return(Tnew); #Retorno del triángulo más pequeño.
   }
   
   draw <- function(T, col=rgb(26/255,17/255,16/255),border=rgb(16/255,52/255,166/255))
@@ -72,7 +72,7 @@ CurvaDeKoch <- function(x)
     draw(T,col=col,border=border);
   }
   
-  #Construcci�n del tri�ngulo inicial:
+  #Construcción del triángulo inicial:
   A = matrix(c(1,0),2,1);
   B = matrix(c(cos(2*pi/3), sin(2*pi/3)),2,1);
   C = matrix(c(cos(2*pi/3),-sin(2*pi/3)),2,1);
@@ -82,13 +82,13 @@ CurvaDeKoch <- function(x)
   par(mar=c(0,0,0,0),bg=rgb(1,1,1));
   par(usr=c(-1.1,1.1,-1.1,1.1));
   
-  #Draw snowflake:
+  #Dibujo del copo de nieve:
   for (i in 0:x) for (j in 0:x) for (k in 0:x) for (l in 0:x) Iterate(T0,c(i,j,k,l));
 }
 
 leerEntero <- function()
 { 
-  n <- readline(prompt="Digite un n�mero entre 0 y 6: ")
+  n <- readline(prompt="Digite un número entre 0 y 6: ")
   n <- as.integer(n)
   if (is.na(n)){
     n <- leerEntero()
