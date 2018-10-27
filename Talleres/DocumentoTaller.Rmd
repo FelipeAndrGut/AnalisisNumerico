@@ -1,0 +1,342 @@
+---
+title: "Taller26-10-2018"
+author: "Gutiérrez, Felipe; Molina, Jonathan"
+date: "26 de octubre de 2018"
+output: html_document
+---
+Este taller se enfocó en resolver ecuaciones diferenciales ordinarias, principalmente por medio del método de Euler, aunque algunas variaciones del mismo, y el método de Runge-Kutta, se emplean a lo largo de los puntos del taller, donde el enunciado lo requería. 
+
+Acontinuación, se dispone del código introductorio al taller: las instrucciones necesarias para instalar las librerías que los métodos de resolución utilizan. Este bloque de código está diseñado para no hacer nada si el usuario ya tiene las librerías necesarias instaladas.
+
+```{r}
+list.of.packages <- c("phaseR", "pracma")
+new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+if(length(new.packages)) install.packages(new.packages)
+
+library(phaseR)
+library(pracma)
+```
+
+El siguiente bloque de código será el más extenso debido a que contiene todas las funciones, desarrolladas por estudiantes de la clase, para implementar los métodos de Euler y Runge-Kutta.
+
+```{r}
+f<-function(fcn,x,y){
+  return(eval(fcn))
+}
+
+# Solo para prueba con dy=x+y, y(0)=1
+obtenerErrorAbsoluto<-function(x,y){
+  solucion=exp(x)*((-x*exp(-x))-exp(-x)+2)
+  return(abs(y-solucion))
+}
+
+graficarCampoPendiente<-function(x0, xn, y0, yn, fcn, numpendientes, metodo){
+  apma1 <- function(t, y, parameters){
+    a <- parameters[1] 
+    dy <- a*(f(fcn, t, y))
+    list(dy)
+  } 
+  apma1.flowField <- flowField(apma1, x = c(x0, xn), 
+                               y   = c(y0, yn), parameters = c(1), 
+                               points = numpendientes, system = "one.dim", 
+                               add = FALSE, xlab = "x", ylab = "y", 
+                               main = metodo)
+  grid()
+}
+
+graficarSolucionNumerica<-function (x, y){
+  points (x, y, pch=20, col="blue")
+  for (i in 2:length(x)){
+    segments(x[i-1], y[i-1], x[i], y[i], col="red")
+  }
+}
+
+rrk4<-function(dy, ti, tf, y0, h, graficar=TRUE, numpendientes=10){
+  t<-seq(ti, tf, h)
+  y<-c(y0)
+  cat("x    |y         |k1        |k2        |k3        |k4       |error absoluto\n")
+  for(i in 2:length(t)){
+    k1=h*f(dy, t[i-1], y[i-1])
+    k2=h*f(dy, t[i-1]+h/2, y[i-1]+k1*(0.5))
+    k3=h*f(dy, t[i-1]+h/2, y[i-1]+k2*(0.5))
+    k4=h*f(dy, t[i-1]+h, y[i-1]+k3)
+    y<-c(y, y[i-1]+1/6*(k1+2*k2+2*k3+k4))
+    cat(t[i-1]," | ", y[i-1]," | ",k1," | ",k2," | ",k3," | ",k4," | ",obtenerErrorAbsoluto(t[i-1],y[i-1]),"\n")
+  }
+  if (graficar){
+    graficarCampoPendiente(min(t), max(t), min(y), max(y), dy, numpendientes, "RK4")
+    graficarSolucionNumerica(t, y)
+  }
+  rta<-list(w=y, t=t)
+}
+
+rrk3<-function(dy, ti, tf, y0, h, graficar=TRUE, numpendientes=10){
+  t<-seq(ti, tf, h)
+  y<-c(y0)
+  cat("x    |y         |k1         |k2        |k3       |error absoluto\n")
+  for(i in 2:length(t)){
+    k1=h*f(dy, t[i-1], y[i-1])
+    k2=h*f(dy, t[i-1]+h/2, y[i-1]+k1*(0.5))
+    k3=h*f(dy, t[i-1]+h, y[i-1]-k1+2*k2)
+    y<-c(y, y[i-1]+1/6*(k1+4*k2+k3))
+    cat(t[i-1]," | ", y[i-1]," | ",k1," | ",k2," | ",k3," | ",obtenerErrorAbsoluto(t[i-1],y[i-1]),"\n")
+  }
+  if (graficar){
+    graficarCampoPendiente(min(t), max(t), min(y), max(y), dy, numpendientes, "RK3")
+    graficarSolucionNumerica(t, y)
+  }
+  rta<-list(w=y, t=t)
+}
+
+dy <- function(x, y) {x+y+1-x^2}
+
+metodoEuler <- function(dy, h, x0, y0, xf)
+{
+  N = (xf - x0) / h
+  x = y = numeric(N+1)
+  x[1] = x0; 
+  y[1] = y0;
+  i = 1
+  while (i <= N)
+  {
+    x[i+1] = x[i]+h
+    y[i+1] = y[i]+(h*dy(x[i],y[i]))
+    i = i+1
+  }
+  return (data.frame(X = x, Y = y))
+}
+
+graficaEuler <- function(en)
+{
+  xlim0 <- en$X[1]
+  ylim0 <- en$Y[1]
+  xlimN <- en$X[nrow(en)]
+  ylimN <- en$Y[nrow(en)]
+  xx <- c(xlim0, xlimN+0.2); yy <- c(round(ylim0, digits = 0), (round(ylimN, digits = 0)) + 1)
+  vectorfield(dy, xx, yy, scale = 0.03)
+  for (xs in seq(xlim0, xlimN, by = 0.25)) 
+  {
+    solField <- rk4(dy, xlim0, xlimN+1, xs, 100)
+    lines(solField$x, solField$y, col="purple")
+  }
+  sol <- rk4(dy, xlim0, xlimN, ylim0, 100)
+  lines(sol$x, sol$y, col="black", type= "p")
+}
+```
+
+A continuación, se veran cada uno de los puntos realizados.
+
+$$Punto 3$$
+En este punto se pedía dar solución a la siguiente ecuación:
+
+$$\frac{dy}{dx} = x + y + 1 - x^2; y(0) = 1$$
+
+Es muy importante resaltar que esta función será utilizada para TODO punto de aquí en adelante.
+
+
+Contando con veinte puntos en esta iteración, se utilizó el método de Euler implementado en clase. 
+```{r}
+e3 <- metodoEuler(dy, 0.1, 0, 1, 2)
+
+e3
+```
+
+Para finalizar, era necesario graficar.
+```{r}
+graficaEuler(e3)
+```
+
+Después, era necesario calcular el resultado de la función de Euler dada por R en sí y compararlas para obtener el error entre ambos métodos.
+
+```{r}
+e3Exact <- euler_heun(dy, 0, 2, 1, n = 20)
+
+errores3 <- data.frame(X = e3$X, Y = 0)
+
+for (i in 1:nrow(e3))
+{
+  errores3$Y[i] <- abs(e3Exact$y[i]-e3$Y[i])
+}
+
+errores3
+```
+
+$$Punto 4$$
+En este punto se pedía desarrollar una nueva función, a base de la función para el desarrollo del método de Euler.
+```{r}
+fPunto4 <- function(xP40, yP40, h, m)
+{
+  xP4 = yP4 = numeric(m+1)
+  xP4[1] = xP40; 
+  yP4[1] = yP40;
+  
+  for (i in 1:m)
+  {
+    K1 <- h * dy(xP4[i], yP4[i])
+    K2 <- h * dy(xP4[i] + h, yP4[i] + K1)
+    yP4[i+1] <- yP4[i] + (1/2) * (K1 + K2)
+    xP4[i+1] <- xP4[i] + h
+  } 
+  return (data.frame(X = xP4, Y = yP4))
+}
+
+e4 <- fPunto4(0, 1, 0.1, 20)
+
+e4
+```
+
+Después, era necesario graficar el resultado obtenido por medio de élla.
+```{r}
+graficaEuler(e4)
+```
+
+$$Punto 5$$
+En este punto se requería desarrollar una nueva función, a base de la función para el desarrollo del método de Euler que fuera una ligera variación del método original, a base del cálculo:
+$$y_{i+1} = y_{i} + \frac{h}{2}(f(X_i,Y_i) + f(X_{i+1},Y_{i+1}))$$
+
+Contando con diez puntos esta vez, se hallaron las soluciones por meido de este nuevo método.
+```{r}
+metodoEulerv <- function(dy, h, x0, y0, xf)
+{
+  N = (xf - x0) / h
+  x = y = numeric(N+1)
+  x[1] = x0; 
+  y[1] = y0;
+  i = 1
+  while (i <= N)
+  {
+    x[i+1] = x[i]+h
+    y[i+1] = y[i]+((h/2)*(dy(x[i],y[i]) + dy(x[i+1], y[i+1])))
+    i = i+1
+  }
+  return (data.frame(X = x, Y = y))
+}
+
+e5v = metodoEulerv(dy, 0.1, 0, 1, 1)
+
+e5v
+```
+
+Luego, era necesario graficar esta solución.
+```{r}
+plot(e5v$X, e5v$Y, col="purple")
+lines(e5v$X, e5v$Y, col="purple")
+```
+
+Tras graficar la versión alterada del método de Euler, era necesario hallar las soluciones por medio del método original.
+```{r}
+e5 <- metodoEuler(dy, 0.1, 0, 1, 1)
+
+e5
+```
+
+Luego, era necesario graficar esta solución.
+```{r}
+plot(e5$X, e5$Y, col="purple")
+lines(e5$X, e5$Y, col="purple")
+```
+
+Finalmente, era necesario calcular los errores entre ambas respuestas.
+```{r}
+errores5 <- data.frame(X = e5$X, Y = 0)
+
+for (i in 1:nrow(e5))
+{
+  errores5$Y[i] <- abs(e5v$Y[i]-e5$Y[i])
+}
+
+errores5
+```
+
+$$Punto 6$$
+Este punto, erroneamente enumerado como el séptimo punto en el enunciado, pedía comparar las soluciones por medio del método de Runge-Kutta y el método de Euler.
+
+En primer lugar, la resolución del rk3 por medio del método de Runge-Kutta.
+```{r}
+r74<-rrk4(expression(x+y+1-x^2), 0, 1, 1, 0.1)
+```
+
+En segundo lugar, la resolución del rk4 por medio del método de Runge-Kutta.
+```{r}
+r73<-rrk3(expression(x+y+1-x^2), 0, 1, 1, 0.1)
+```
+
+Después, la resolución por medio del método de Euler.
+```{r}
+e7 <- metodoEuler(dy, 0.1, 0, 1, 1)
+
+e7
+```
+
+ahora, era necesario graficar.
+```{r}
+graficaEuler(e7)
+```
+
+Finalmente, era necesario hacer el cálculo de los errores entre el conjunto de soluciones del método de Euler y las soluciones por medio del método de Runge-Kutta. Primero, la comparación contra rk3.
+```{r}
+errores7rk3 <- data.frame(X = e7$X, Y = 0)
+
+for (i in 1:nrow(e7))
+{
+  errores7rk3$Y[i] <- abs(r73$w[i]-e7$Y[i])
+}
+
+errores7rk3
+```
+
+En segundo, y para finalizar el taller, la comparación contra rk4.
+```{r}
+errores7rk4 <- data.frame(X = e7$X, Y = 0)
+
+for (i in 1:nrow(e7))
+{
+  errores7rk4$Y[i] <- abs(r74$w[i]-e7$Y[i])
+}
+
+errores7rk4
+```
+
+$$Conclusiones$$
+
+En el punto 3, como se puede ver en la tabla de errores, la diferencia entre los valores calculados por medio del método implementado en clase y el método ofrecido por R se hace más y más notoria con cada iteración, demostrando un error de casi 1.2 en los últimos valores. Se considera que el culpable es el valor de h tomado en el ejercicio; con un paso tan amplio como 0.5, un método como el que se utilizó tiende a hacerse menos confiable.Como autores, se recomienda el uso de 1e-3 como mínimo a la hora de utilizar el método implementado en clase.
+
+En el punto 5, la diferencia entre los valores es tan evidente que se puede ver claramente en las gráficas de ambas funciones. Con un error de cerca de 1.3 en el último valor, es evidente que ambas formas de llevar el método de Euler acabo están retornando soluciones destacablamente diferentes, pero cuál de los dos lo está haciendo de la manera más correcta no puede decirse en este momento; después de todo, el método anterior presentó un margen de error considerable con el cálculo establecido en R ya.
+
+En el punto 6, a pesar de las diferencias visuales entre los gráficos, la similitud entre las soluciones obtenidas por ambos métodos es notoria. Al ver las tablas de resultado de los errores, y notar que el margen de error entre las soluciones del método de Runge-Kutta y el método de Euler implementados en clase es tan sólo de cerca de 0.3, un margén comendable a comparación de aquellos obtenidos en los puntos anteriores. Esto puede ser indicio de que el método de Euler original implementado es más confiable que la versión creada en el punto 5, lo cual sería prueba de la similitud de ambos métodos, lógico ya que ambos son utilizados para resolver este tipo de ecuaciones. Por otro lado, puede que ambos métodos implementados no sean correctos después de todo; haría falta contrastar las soluciones obtenidas por medio del método de Runge-Kutta conla función de Euler de R en sí, al igual que realizar pruebas con valores de h más pequeños, para estar seguros.
+
+Cambios notables que tuvieron que hacerse con el código fue el cambio de nombre de algunas funciones en el código del método de Runge-Kutta ya que sus nombres originales eran iguales a los nombres de otras funciones que ya hacen parte de R, lo cual causaba varios errores al probar el código. Por otro lado, los cambios realizados al código del método de Euler fue el hecho de establecer la parte que graficaba como una función que pudiera llamarse desde otros lugares en el script, a la vez que se modificó para que la gráfica acotara los límites de las funciones acorde a sus características, en lugar de utilizar un marco fijo que posiblemente fue problemático de interpretar por parte de aquellos que no noten que la gráfica se asimilaba a aquellas hechas por el método de runge-Kutta, si se fijaban en la zona adecuada. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
